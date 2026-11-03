@@ -4,12 +4,12 @@ date: 2026-11-02
 draft: false
 authors: [JiriOndrusek]
 categories: ["AI", "Camel"]
-preview: "Camel 4.23 adds the langchain4j-ingest component and four ingestion Kamelets. Turn a folder, an S3 bucket or a Kafka topic into a RAG knowledge base of documents, images, audio or video, from Java, YAML, Camel Main or Camel JBang (with a small bean file): parse, filter, split, embed and store. Camel Quarkus 4.0.0 will reduce it to a few properties."
+preview: "Camel 4.23 adds the langchain4j-ingest component and four ingestion Kamelets. Turn a folder, an S3 bucket or a Kafka topic into a RAG knowledge base of documents, images, audio or video, from Java, YAML or Camel JBang (with a small bean file): parse, filter, split, embed and store. Camel Quarkus 4.0.0 will reduce it to a few properties."
 ---
 
 Camel 4.23 can turn a folder of documents into a knowledge base for retrieval-augmented generation (RAG). The new `camel-langchain4j-ingest` component splits a message body, embeds the segments and writes them to a LangChain4j `EmbeddingStore`. Four new Kamelets in `camel-kamelets` 4.23 add the rest of the pipeline: a directory source, two parsers and a sink.
 
-All of it runs from the Java DSL, the YAML DSL and Camel Main. Camel JBang runs it too, once you define the store and the model as beans in a small Java file ([how to define beans](/manual/camel-jbang-beans.html#_using_camel_dependency_injection)). Camel Quarkus wraps it in properties (on `main`, not released yet).
+All of it runs from the Java DSL, the YAML DSL and Camel Main. Camel JBang runs it too, once you define the store and the model as beans in a small Java file ([how to define beans](/manual/camel-jbang-beans.html#_using_camel_dependency_injection)). Camel Quarkus wraps it in properties (upcoming 4.0.0, not released yet).
 
 This post covers the component, the Kamelets and the Camel Quarkus extension.
 
@@ -232,7 +232,7 @@ quarkus.camel.langchain4j.ingest.reports.embedding-model=my-model
 
 ## Camel Quarkus 3.40+
 
-The 3.40.0 release still ingests text with an engine of its own. It already writes the metadata keys of the component (`camel_ingest_pipeline` and `camel_ingest_document_id`), and `source.idempotent-repository` names a persistent register. On `main`, the 4.0.0 development line, the extension drives the component and composes each pipeline from the Kamelets. This will ship with Camel Quarkus 4.0.0, which is not released yet. The sections below describe `main`. A pipeline is a handful of properties. No route. No ingestion code.
+The 3.40.0 release still ingests text with an engine of its own. It already writes the metadata keys of the component (`camel_ingest_pipeline` and `camel_ingest_document_id`), and `source.idempotent-repository` names a persistent register. In Camel Quarkus 4.0.0, which is not released yet, the extension drives the component and composes each pipeline from the Kamelets. The sections below describe 4.0.0. A pipeline is a handful of properties. No route. No ingestion code.
 
 ### Pipelines as Properties
 
@@ -243,7 +243,7 @@ quarkus.camel.langchain4j.ingest.reports.embedding-store=reports
 quarkus.camel.langchain4j.ingest.reports.embedding-model=my-model
 ```
 
-`embedding-store` and `embedding-model` name CDI beans by their `@Named` value. Leave them out when the application has exactly one of each. Segment size, overlap, batch size, `max-document-size` and a `document-splitter` bean are properties too.
+Segment size, overlap, batch size, `max-document-size` and a `document-splitter` bean are properties too.
 
 `parser` is `tika` or `docling`. Tika needs `camel-quarkus-tika` and a parser module such as `tika-parser-pdf-module`. Docling needs `camel-quarkus-docling`, `camel.component.docling.use-docling-serve=true` and `camel.component.docling.docling-serve-url`. A missing parser extension fails the build and names the artifact.
 
@@ -265,11 +265,9 @@ IngestPipeline events() {
 
 A pipeline named `reports` runs as the route `langchain4j-ingest-reports` plus one route per Kamelet it uses, suffixed `-source`, `-parser` and `-sink`. To pause a directory pipeline, stop its `-source` route.
 
-The extension sizes the file register at 100,000 keys. It lives in memory, so a restart ingests the folder once more. `source.idempotent-repository` names a persistent one.
-
 ### Filters and Media
 
-[camel-quarkus#9340](https://github.com/apache/camel-quarkus/pull/9340) exposes the component's filters and media modality as properties (on `main`, not released yet):
+[camel-quarkus#9340](https://github.com/apache/camel-quarkus/pull/9340) exposes the component's filters and media modality as properties (in 4.0.0, not released yet):
 
 ```properties
 quarkus.camel.langchain4j.ingest.products.filter.include-id=**/*.pdf,**/*.md
@@ -286,9 +284,9 @@ quarkus.camel.langchain4j.ingest.photos.filter.include-id=**/*.png,**/*.jpg
 
 ### Native Mode
 
-The extension has supported native mode since 3.39.0. On `main` the Kamelets the pipelines use are always embedded in the native executable, even if `quarkus.camel.kamelet.identifiers` is narrowed, and the `IdempotentRepository` classes it finds are registered for reflection, so a `#class:` register works too. Tika's HTML, plain text and PDF modules work in native mode on `main` as well. CI runs the extension's integration tests against the native executable.
+The extension has supported native mode since 3.39.0. In 4.0.0 the Kamelets the pipelines use are always embedded in the native executable, even if `quarkus.camel.kamelet.identifiers` is narrowed, and the `IdempotentRepository` classes it finds are registered for reflection, so a `#class:` register works too. Tika's HTML, plain text and PDF modules work in native mode as well. CI runs the extension's integration tests against the native executable.
 
-The [`langchain4j-ingest-rag`](https://github.com/apache/camel-quarkus-examples/tree/main/langchain4j-ingest-rag) example shows a properties-only pipeline feeding a RAG assistant. It is pinned to 3.40.0, so it ingests text files only. The full options are in the [extension reference](/camel-quarkus/next/reference/extensions/langchain4j-ingest.html).
+The [`langchain4j-ingest-rag`](https://github.com/apache/camel-quarkus-examples/tree/3.40.0/langchain4j-ingest-rag) example shows a properties-only pipeline feeding a RAG assistant. It is pinned to 3.40.0, so it ingests text files only. The full options are in the [extension reference](/camel-quarkus/next/reference/extensions/langchain4j-ingest.html).
 
 ## Try It Yourself
 
@@ -300,6 +298,6 @@ The component and the Kamelets ship in Apache Camel 4.23 and `camel-kamelets` 4.
 
 1. Add `camel-langchain4j-ingest` and bind an `EmbeddingModel` and an `EmbeddingStore` in the registry.
 2. Write the route in the DSL you prefer, with the Tika or Docling Kamelet if you parse.
-3. On Quarkus, add `camel-quarkus-langchain4j-ingest` from `main` (3.40.0 ingests text only) and declare the pipeline in `application.properties`.
+3. On Quarkus, add `camel-quarkus-langchain4j-ingest` 4.0.0 (not released yet; 3.40.0 ingests text only) and declare the pipeline in `application.properties`.
 
 Your documents are now a knowledge base. Declare the pipeline, drop in the files.
