@@ -292,7 +292,7 @@ The [`langchain4j-ingest-rag`](https://github.com/apache/camel-quarkus-examples/
 
 A runnable example is in the [`camel-langchain4j-ingest-demo`](https://github.com/jiriOndrusek/camel-langchain4j-ingest-demo) repository. Clone it and run `./run.sh`. It needs Java 21+ and JBang, and runs fully local, with no API key and no Docker.
 
-## Try It
+## Use It in Your Project
 
 The component and the Kamelets ship in Apache Camel 4.23 and `camel-kamelets` 4.23.0.
 
