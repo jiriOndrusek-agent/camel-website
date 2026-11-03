@@ -4,7 +4,7 @@ date: 2026-11-02
 draft: false
 authors: [JiriOndrusek]
 categories: ["AI", "Camel"]
-preview: "Camel 4.23 adds the langchain4j-ingest component and four ingestion Kamelets. Turn a folder, an S3 bucket or a Kafka topic into a RAG knowledge base of documents, images, audio or video, from Java, YAML, Camel Main or Camel JBang (with a small bean file): parse, filter, split, embed and store. The Camel Quarkus extension on main reduces it to a few properties."
+preview: "Camel 4.23 adds the langchain4j-ingest component and four ingestion Kamelets. Turn a folder, an S3 bucket or a Kafka topic into a RAG knowledge base of documents, images, audio or video, from Java, YAML, Camel Main or Camel JBang (with a small bean file): parse, filter, split, embed and store. Camel Quarkus 4.0.0 will reduce it to a few properties."
 ---
 
 Camel 4.23 can turn a folder of documents into a knowledge base for retrieval-augmented generation (RAG). The new `camel-langchain4j-ingest` component splits a message body, embeds the segments and writes them to a LangChain4j `EmbeddingStore`. Four new Kamelets in `camel-kamelets` 4.23 add the rest of the pipeline: a directory source, two parsers and a sink.
@@ -218,9 +218,21 @@ On Camel Main, add `camel-langchain4j-ingest`, `camel-yaml-dsl`, `camel-kamelet`
 - **Failures.** A failing file on a directory source is retried on every poll.
 - **Support level.** The component and the Kamelets are Preview.
 
-## Camel Quarkus
+## Camel Quarkus 3.39
 
-The `camel-quarkus-langchain4j-ingest` extension is experimental and has been part of Camel Quarkus since 3.39.0. The 3.39.0 and 3.40.0 releases ingest text with an engine of their own. On `main`, the 4.0.0 development line, the extension drives the component and composes each pipeline from the Kamelets. This will ship with Camel Quarkus 4.0.0, which is not released yet. The sections below describe `main`. A pipeline is a handful of properties. No route. No ingestion code.
+The `camel-quarkus-langchain4j-ingest` extension is experimental and has been part of Camel Quarkus since 3.39.0. The 3.39.0 release ingests text with an engine of its own. A directory pipeline reads each file as UTF-8 text, so a PDF has to be converted first. A pipeline is a handful of properties:
+
+```properties
+quarkus.camel.langchain4j.ingest.reports.source.directory=/var/data/reports
+quarkus.camel.langchain4j.ingest.reports.embedding-store=reports
+quarkus.camel.langchain4j.ingest.reports.embedding-model=my-model
+```
+
+`embedding-store` and `embedding-model` name CDI beans by their `@Named` value. Leave them out when the application has exactly one of each. Segments carry `camel_quarkus_pipeline` and `camel_quarkus_document_id` metadata, not the `camel_ingest_*` keys of the component. The extension sizes the file register at 100,000 keys. It lives in memory, so a restart ingests the folder once more.
+
+## Camel Quarkus 3.40+
+
+The 3.40.0 release still ingests text with an engine of its own. It already writes the metadata keys of the component (`camel_ingest_pipeline` and `camel_ingest_document_id`), and `source.idempotent-repository` names a persistent register. On `main`, the 4.0.0 development line, the extension drives the component and composes each pipeline from the Kamelets. This will ship with Camel Quarkus 4.0.0, which is not released yet. The sections below describe `main`. A pipeline is a handful of properties. No route. No ingestion code.
 
 ### Pipelines as Properties
 
