@@ -14,7 +14,7 @@ jdk: [17,21,25]
 
 For detailed instructions on using Apache Camel Upgrade Recipes, please see the [Apache Camel Upgrade Recipes Tool Manual](/manual/camel-upgrade-recipes-tool.html).
 
-This release introduces new recipes for migration to Camel 4.23, including the removal of camel-csimple, camel-zeebe (replaced by camel-camunda) and camel-langchain4j-tools. It also carries forward the Camel 4.22.1 and 4.22.2 patch recipes. For more information, please see the [README.adoc](https://github.com/apache/camel-upgrade-recipes/blob/main/README.adoc).
+This release introduces new recipes for migration to Camel 4.23. For more information, please see the [README.adoc](https://github.com/apache/camel-upgrade-recipes/blob/main/README.adoc).
 
 ## Full Release Notes
 
